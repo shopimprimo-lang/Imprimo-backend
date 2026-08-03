@@ -8,39 +8,48 @@ const auth = require('../../middleware/auth');
 const role = require('../../middleware/role');
 const store = require('../../utils/store');
 const { ROLES } = require('../../constants');
+const cloudinary = require('../../config/cloudinary');
 
-router.post('/add', auth, role.check(ROLES.Admin), (req, res) => {
-  const name = req.body.name;
-  const description = req.body.description;
-  const products = req.body.products;
-  const isActive = req.body.isActive;
+router.post('/add', auth, role.check(ROLES.Admin), async (req, res) => {
+  try {
+    const name = req.body.name;
+    const description = req.body.description;
+    const products = req.body.products;
+    const isActive = req.body.isActive;
+    const image = req.body.image;
 
-  if (!description || !name) {
-    return res
-      .status(400)
-      .json({ error: 'You must enter description & name.' });
-  }
-
-  const category = new Category({
-    name,
-    description,
-    products,
-    isActive
-  });
-
-  category.save((err, data) => {
-    if (err) {
-      return res.status(400).json({
-        error: 'Your request could not be processed. Please try again.'
-      });
+    if (!name) {
+      return res.status(400).json({ error: 'You must enter a name.' });
     }
+
+    let imageUrl = '';
+    if (image && image.startsWith('data:image')) {
+      const upload = await cloudinary.uploader.upload(image, { folder: 'categories' });
+      imageUrl = upload.secure_url;
+    } else if (image) {
+      imageUrl = image;
+    }
+
+    const category = new Category({
+      name,
+      description,
+      products,
+      isActive,
+      image: imageUrl
+    });
+
+    const savedCategory = await category.save();
 
     res.status(200).json({
       success: true,
       message: `Category has been added successfully!`,
-      category: data
+      category: savedCategory
     });
-  });
+  } catch (error) {
+    res.status(400).json({
+      error: 'Your request could not be processed. Please try again.'
+    });
+  }
 });
 
 // fetch store categories api
@@ -104,6 +113,11 @@ router.put('/:id', auth, role.check(ROLES.Admin), async (req, res) => {
 
     if (!update) {
       return res.status(400).json({ error: 'No update data provided.' });
+    }
+
+    if (update.image && update.image.startsWith('data:image')) {
+      const upload = await cloudinary.uploader.upload(update.image, { folder: 'categories' });
+      update.image = upload.secure_url;
     }
 
     const updated = await Category.findOneAndUpdate(

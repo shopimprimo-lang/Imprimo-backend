@@ -10,6 +10,26 @@ const BannerSchema = new Schema({
     type: String,
     required: true,
   },
+  title: {
+    type: String,
+    trim: true,
+  },
+  subtitle: {
+    type: String,
+    trim: true,
+  },
+  ctaLabel: {
+    type: String,
+    trim: true,
+  },
+  ctaLink: {
+    type: String,
+    trim: true,
+  },
+  displayOrder: {
+    type: Number,
+    default: 0,
+  },
   isActive: {
     type: Boolean,
     default: true,

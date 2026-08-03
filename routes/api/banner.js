@@ -19,12 +19,12 @@ router.get('/', async (req, res) => {
 // POST add banner
 router.post('/add', auth,  async (req, res) => {
   try {
-    const { desktopImage, mobileImage } = req.body;
+    const { desktopImage, mobileImage, title, subtitle, ctaLabel, ctaLink, displayOrder } = req.body;
 
     if (!desktopImage || !mobileImage) {
       return res.status(400).json({ error: 'You must provide both desktop and mobile images.' });
     }
-      const desktopUpload = await cloudinary.uploader.upload(desktopImage, {
+    const desktopUpload = await cloudinary.uploader.upload(desktopImage, {
       folder: 'banners/desktop'
     });
 
@@ -33,11 +33,15 @@ router.post('/add', auth,  async (req, res) => {
       folder: 'banners/mobile'
     });
 
-
-    // const banner = new Banner({ desktopImage, mobileImage });
-     const banner = new Banner({
+    const banner = new Banner({
       desktopImage: desktopUpload.secure_url,
-      mobileImage: mobileUpload.secure_url
+
+      mobileImage: mobileUpload.secure_url,
+      title,
+      subtitle,
+      ctaLabel,
+      ctaLink,
+      displayOrder: displayOrder || 0
     });
     const savedBanner = await banner.save();
 
@@ -71,6 +75,16 @@ router.put('/:id', auth,async (req, res) => {
   try {
     const bannerId = req.params.id;
     const update = req.body.banner;
+
+    if (update.desktopImage && update.desktopImage.startsWith('data:image')) {
+      const upload = await cloudinary.uploader.upload(update.desktopImage, { folder: 'banners/desktop' });
+      update.desktopImage = upload.secure_url;
+    }
+
+    if (update.mobileImage && update.mobileImage.startsWith('data:image')) {
+      const upload = await cloudinary.uploader.upload(update.mobileImage, { folder: 'banners/mobile' });
+      update.mobileImage = upload.secure_url;
+    }
 
     await Banner.findOneAndUpdate({ _id: bannerId }, update, { new: true });
 

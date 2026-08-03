@@ -92,8 +92,8 @@ router.post('/add', auth, role.check(ROLES.Admin, ROLES.Merchant, ROLES.Member),
   try {
     const { name, description, category, variants, amenities, price, images } = req.body;
 
-    if (!name || !description) {
-      return res.status(400).json({ error: 'Name and description are required.' });
+    if (!name) {
+      return res.status(400).json({ error: 'Name is required.' });
     }
 
     let inputVariants = [];

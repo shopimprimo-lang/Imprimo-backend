@@ -43,11 +43,13 @@ router.use('/facility', facilityRoutes);
 // order routes
 // router.use('/order', orderRoutes);
 
-// // Review routes
-// router.use('/review', reviewRoutes);
+// Review routes
+const reviewRoutes = require('./review');
+router.use('/review', reviewRoutes);
 
-// // Wishlist routes
-// router.use('/wishlist', wishlistRoutes);
+// FAQ routes
+const faqRoutes = require('./faq');
+router.use('/faq', faqRoutes);
 
 // Banner routes
 router.use('/banner', bannerRoutes);

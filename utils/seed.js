@@ -6,7 +6,7 @@ const { faker } = require('@faker-js/faker');
 const { setupDB } = require('./db');
 const { ROLES } = require('../constants');
 const User = require('../models/user');
-const Brand = require('../models/brand');
+
 const Product = require('../models/product');
 const Category = require('../models/category');
 
@@ -15,7 +15,7 @@ const email = args[0];
 const password = args[1];
 
 const NUM_PRODUCTS = 100;
-const NUM_BRANDS = 10;
+
 const NUM_CATEGORIES = 10;
 
 const seedDB = async () => {
@@ -62,26 +62,12 @@ const seedDB = async () => {
       console.log(`${chalk.green('✓')} ${chalk.green('Categories seeded.')}`);
     }
 
-    const brandsCount = await Brand.countDocuments();
-    if (brandsCount >= NUM_BRANDS) {
-      console.log(`${chalk.yellow('!')} ${chalk.yellow('Sufficient number of brands already exist, skipping seeding for brands.')}`);
-    } else {
-      for (let i = 0; i < NUM_BRANDS; i++) {
-        const brand = new Brand({
-          name: faker.company.name(),
-          description: faker.lorem.sentence(),
-          isActive: true
-        });
-        await brand.save();
-      }
-      console.log(`${chalk.green('✓')} ${chalk.green('Brands seeded.')}`);
-    }
+
 
     const productsCount = await Product.countDocuments();
     if (productsCount >= NUM_PRODUCTS) {
       console.log(`${chalk.yellow('!')} ${chalk.yellow('Sufficient number of products already exist, skipping seeding for products.')}`);
     } else {
-      const brands = await Brand.find().select('_id');
       for (let i = 0; i < NUM_PRODUCTS; i++) {
         const randomCategoryIndex = faker.number.int(categories.length - 1);
         const product = new Product({
@@ -92,7 +78,6 @@ const seedDB = async () => {
           price: faker.commerce.price(),
           taxable: faker.datatype.boolean(),
           isActive: true,
-          brand: brands[faker.number.int(brands.length - 1)]._id,
           category: categories[randomCategoryIndex]._id
         });
         await product.save();

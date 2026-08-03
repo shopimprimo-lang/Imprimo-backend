@@ -1,5 +1,5 @@
 {
-  "name": "server",
+  "name": "printiqo-backend",
   "version": "1.0.0",
   "description": "MERN Ecommerce Server",
   "scripts": {
