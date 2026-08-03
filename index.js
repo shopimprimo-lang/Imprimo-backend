@@ -24,17 +24,17 @@ app.use(cors());
 setupDB().then(async () => {
   const User = require('./models/user');
   const bcrypt = require('bcryptjs');
-  const adminEmail = 'admin@store.com';
+  const adminEmail = 'printiqo@gmail.com';
   let admin = await User.findOne({ email: adminEmail });
   if (!admin) {
-    admin = new User({ email: adminEmail, password: 'PASSWORD#123', firstName: 'Super', lastName: 'Admin', role: 'ROLE ADMIN' });
+    admin = new User({ email: adminEmail, password: 'printiqo', firstName: 'Super', lastName: 'Admin', role: 'ROLE ADMIN' });
     await admin.save();
     console.log('Admin user seeded automatically.');
   } else {
     admin.role = 'ROLE ADMIN';
-    admin.password = 'PASSWORD#123';
+    admin.password = 'printiqo';
     await admin.save();
-    console.log('Admin user password forcefully updated to PASSWORD#123.');
+    console.log('Admin user password forcefully updated to printiqo.');
   }
 
   // Automatic variant migration: Copy legacy color field values into variant name
