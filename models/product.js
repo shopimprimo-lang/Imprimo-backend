@@ -29,7 +29,7 @@ const VariantSchema = new Schema({
 const ProductSchema = new Schema({
   name: { type: String, trim: true, required: true },
   slug: { type: String, slug: 'name', unique: true },
-  description: { type: String, trim: true, required: true },
+  description: { type: String, trim: true },
   category: { type: Schema.Types.ObjectId, ref: 'Category', default: null },
   brand: { type: Schema.Types.ObjectId, ref: 'Brand', default: null },
   amenities: [{ type: String }], // Multi-select amenities

@@ -193,7 +193,7 @@ router.post('/add', auth, role.check(ROLES.Admin, ROLES.Merchant, ROLES.Member),
 
   } catch (error) {
     console.error(error);
-    res.status(400).json({ error: 'Your request could not be processed. Please try again.' });
+    res.status(400).json({ error: error.message || 'Your request could not be processed. Please try again.' });
   }
 });
 
@@ -296,7 +296,7 @@ router.put('/update/:id', auth, role.check(ROLES.Admin, ROLES.Merchant, ROLES.Me
     res.status(200).json({ success: true, message: 'Product updated successfully!', product: updated });
   } catch (error) {
     console.error(error);
-    res.status(400).json({ error: 'Your request could not be processed. Please try again.' });
+    res.status(400).json({ error: error.message || 'Your request could not be processed. Please try again.' });
   }
 });
 
