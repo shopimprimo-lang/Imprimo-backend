@@ -6,6 +6,8 @@ Mongoose.plugin(slug, { separator: '-', lang: 'en', truncate: 120 });
 
 const VariantSchema = new Schema({
   name: { type: String, trim: true },
+  modelName: { type: String, trim: true },
+  sizeName: { type: String, trim: true },
   color: { type: String, trim: true },
   price: { type: Number },
   stock: { type: Number, default: 0 },
@@ -13,6 +15,9 @@ const VariantSchema = new Schema({
   description: { type: String, trim: true }, // Variant description
   images: [{ type: String }],
   isDefault: { type: Boolean, default: false },
+  variantType: { type: String, enum: ['model', 'color', 'size'], default: 'color' },
+  sku: { type: String, trim: true },
+  weight: { type: Number, default: 0 },
   // Optional service attributes
   duration: { type: String, trim: true },
   capacity: { type: String, trim: true },
@@ -24,7 +29,7 @@ const VariantSchema = new Schema({
 const ProductSchema = new Schema({
   name: { type: String, trim: true, required: true },
   slug: { type: String, slug: 'name', unique: true },
-  description: { type: String, trim: true },
+  description: { type: String, trim: true, required: true },
   category: { type: Schema.Types.ObjectId, ref: 'Category', default: null },
   brand: { type: Schema.Types.ObjectId, ref: 'Brand', default: null },
   amenities: [{ type: String }], // Multi-select amenities

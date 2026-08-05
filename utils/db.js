@@ -19,7 +19,8 @@ const setupDB = async () => {
     await mongoose.connect(database.url, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
-      serverSelectionTimeoutMS: 5000 // 5 seconds timeout
+      serverSelectionTimeoutMS: 5000, // 5 seconds timeout
+      family: 4 // Force IPv4
     });
     dbState.connected = true;
     dbState.error = null;

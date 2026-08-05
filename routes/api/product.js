@@ -142,10 +142,14 @@ router.post('/add', auth, role.check(ROLES.Admin, ROLES.Merchant, ROLES.Member),
       const optionName = v.color || (inputVariants.length === 1 ? 'Default' : `Option ${index + 1}`);
       updatedVariants.push({
         name: optionName,
+        modelName: v.modelName || '',
+        sizeName: v.sizeName || '',
         color: optionName,
         price: Number(v.price) || 0,
         stock: Number(v.stock) || 0,
-        sizes: Array.isArray(v.sizes) ? v.sizes.map(s => ({
+        sku: v.sku || '',
+        variantType: v.variantType || 'color',
+          sizes: Array.isArray(v.sizes) ? v.sizes.map(s => ({
           size: s.size || '',
           price: Number(s.price) || 0,
           stock: Number(s.stock) || 0
@@ -255,9 +259,13 @@ router.put('/update/:id', auth, role.check(ROLES.Admin, ROLES.Merchant, ROLES.Me
         const optionName = v.color || (inputVariants.length === 1 ? 'Default' : `Option ${index + 1}`);
         updatedVariants.push({
           name: optionName,
+          modelName: v.modelName || '',
+          sizeName: v.sizeName || '',
           color: optionName,
           price: Number(v.price) || 0,
           stock: Number(v.stock) || 0,
+          sku: v.sku || '',
+          variantType: v.variantType || 'color',
           sizes: Array.isArray(v.sizes) ? v.sizes.map(s => ({
             size: s.size || '',
             price: Number(s.price) || 0,
