@@ -96,10 +96,11 @@ router.post('/add', auth, role.check(ROLES.Admin, ROLES.Merchant, ROLES.Member),
       return res.status(400).json({ error: 'Name is required.' });
     }
 
-    let inputVariants = [];
-    if (variants && Array.isArray(variants) && variants.length > 0) {
-      inputVariants = variants;
-    } else {
+    // Variants are optional — an empty/absent array saves a product with none.
+    let inputVariants = Array.isArray(variants) ? variants : [];
+
+    // Legacy callers send a top-level price/images instead of a variants array.
+    if (inputVariants.length === 0 && (price !== undefined || (images && images.length))) {
       inputVariants = [{
         name: 'Default',
         price: price !== undefined ? Number(price) : 0,
@@ -204,9 +205,11 @@ router.put('/update/:id', auth, role.check(ROLES.Admin, ROLES.Merchant, ROLES.Me
 
     let inputVariants = undefined;
     if (variants !== undefined) {
-      if (Array.isArray(variants) && variants.length > 0) {
-        inputVariants = variants;
-      } else {
+      // Variants are optional — `[]` clears them rather than failing validation.
+      inputVariants = Array.isArray(variants) ? variants : [];
+
+      // Legacy callers send a top-level price/images instead of a variants array.
+      if (inputVariants.length === 0 && (price !== undefined || (images && images.length))) {
         inputVariants = [{
           name: 'Default',
           price: price !== undefined ? Number(price) : 0,

@@ -7,7 +7,10 @@ const auth = (req, res, next) => {
     }
 
     if (!user) {
-      return res.status(401).json({ error: 'You are not authorized' });
+      // info carries the real reason ("jwt expired", "No auth token", ...) — surface it
+      // so an expired session is distinguishable from a genuinely bad token.
+      const reason = info && info.message ? info.message : 'You are not authorized';
+      return res.status(401).json({ error: reason, expired: reason === 'jwt expired' });
     }
 
     req.user = user;
