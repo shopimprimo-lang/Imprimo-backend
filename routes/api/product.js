@@ -22,7 +22,11 @@ router.get('/', async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
 
-    const products = await Product.find({})
+    // ?search= matches product names (storefront search suggestions); input is regex-escaped.
+    const search = typeof req.query.search === 'string' ? req.query.search.trim() : '';
+    const filter = search ? { name: new RegExp(search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i') } : {};
+
+    const products = await Product.find(filter)
       .populate('category', 'name')
       .limit(limit)
       .skip((page - 1) * limit);
@@ -88,9 +92,9 @@ router.get('/item/:slug', async (req, res) => {
 //   }
 // });
 
-router.post('/add', auth, role.check(ROLES.Admin, ROLES.Merchant, ROLES.Member), async (req, res) => {
+router.post('/add', auth, role.check(ROLES.Admin), async (req, res) => {
   try {
-    const { name, description, category, variants, amenities, price, images } = req.body;
+    const { name, description, category, variants, amenities, price, images, featured } = req.body;
 
     if (!name) {
       return res.status(400).json({ error: 'Name is required.' });
@@ -132,8 +136,7 @@ router.post('/add', auth, role.check(ROLES.Admin, ROLES.Merchant, ROLES.Member),
       if (v.images && Array.isArray(v.images)) {
         for (const img of v.images) {
           if (img && img.startsWith('data:image')) {
-            const upload = await cloudinary.uploader.upload(img, { folder: 'products' });
-            uploadedImages.push(upload.secure_url);
+            uploadedImages.push(await cloudinary.uploadImage(img, 'products'));
           } else if (img) {
             uploadedImages.push(img); // already a URL
           }
@@ -177,6 +180,7 @@ router.post('/add', auth, role.check(ROLES.Admin, ROLES.Merchant, ROLES.Member),
       description,
       category: category || null,
       amenities: amenities || [],
+      featured: !!featured,
       variants: updatedVariants
     });
 
@@ -199,9 +203,9 @@ router.post('/add', auth, role.check(ROLES.Admin, ROLES.Merchant, ROLES.Member),
 });
 
 // PUT update product
-router.put('/update/:id', auth, role.check(ROLES.Admin, ROLES.Merchant, ROLES.Member), async (req, res) => {
+router.put('/update/:id', auth, role.check(ROLES.Admin), async (req, res) => {
   try {
-    const { name, description, category, variants, isActive, amenities, price, images } = req.body;
+    const { name, description, category, variants, isActive, amenities, price, images, featured } = req.body;
 
     let inputVariants = undefined;
     if (variants !== undefined) {
@@ -238,6 +242,7 @@ router.put('/update/:id', auth, role.check(ROLES.Admin, ROLES.Merchant, ROLES.Me
     if (description !== undefined) product.description = description;
     if (category !== undefined) product.category = category || null;
     if (isActive !== undefined) product.isActive = isActive;
+    if (featured !== undefined) product.featured = !!featured;
     if (amenities !== undefined) product.amenities = amenities || [];
 
     if (inputVariants !== undefined) {
@@ -251,8 +256,7 @@ router.put('/update/:id', auth, role.check(ROLES.Admin, ROLES.Merchant, ROLES.Me
           for (const img of v.images) {
             if (img && img.startsWith('data:image')) {
               // New base64 image → upload to Cloudinary
-              const upload = await cloudinary.uploader.upload(img, { folder: 'products' });
-              uploadedImages.push(upload.secure_url);
+              uploadedImages.push(await cloudinary.uploadImage(img, 'products'));
             } else if (img) {
               uploadedImages.push(img); // already a Cloudinary URL
             }
@@ -304,7 +308,7 @@ router.put('/update/:id', auth, role.check(ROLES.Admin, ROLES.Merchant, ROLES.Me
 });
 
 // DELETE product
-router.delete('/delete/:id', auth, role.check(ROLES.Admin, ROLES.Merchant, ROLES.Member), async (req, res) => {
+router.delete('/delete/:id', auth, role.check(ROLES.Admin), async (req, res) => {
   try {
     await Product.deleteOne({ _id: req.params.id });
     res.status(200).json({ success: true, message: 'Product deleted successfully!' });

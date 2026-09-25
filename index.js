@@ -2,11 +2,12 @@ require('dotenv').config();
 const express = require('express');
 const chalk = require('chalk');
 const cors = require('cors');
+const path = require('path');
 const helmet = require('helmet');
 
 const keys = require('./config/keys');
 const routes = require('./routes');
-const { setupDB } = require('./utils/db'); // Force nodemon restart to load new env
+const { setupDB, dbState } = require('./utils/db'); // Force nodemon restart to load new env
 
 const { port } = keys;
 const app = express();
@@ -24,17 +25,27 @@ app.use(cors());
 setupDB().then(async () => {
   const User = require('./models/user');
   const bcrypt = require('bcryptjs');
-  const adminEmail = 'printiqo@gmail.com';
-  let admin = await User.findOne({ email: adminEmail });
-  if (!admin) {
-    admin = new User({ email: adminEmail, password: 'printiqo', firstName: 'Super', lastName: 'Admin', role: 'ROLE ADMIN' });
-    await admin.save();
-    console.log('Admin user seeded automatically.');
-  } else {
-    admin.role = 'ROLE ADMIN';
-    admin.password = 'printiqo';
-    await admin.save();
-    console.log('Admin user password forcefully updated to printiqo.');
+  // Seed the admin account from env — never hardcode credentials.
+  // In-memory dev DB: create or refresh it. Real DB (MONGO_URI): create only if missing,
+  // never modify existing users, and never with the published demo password.
+  const { ADMIN_EMAIL: adminEmail, ADMIN_PASSWORD: adminPassword } = process.env;
+  const realDB = dbState.connected && !dbState.inMemory;
+  if (realDB && adminPassword === 'ImprimoDemo@123') {
+    console.warn('Skipping admin seed: ADMIN_PASSWORD is the demo password. Set a strong one in .env for a real database.');
+  } else if (adminEmail && adminPassword) {
+    let admin = await User.findOne({ email: adminEmail });
+    if (admin && realDB) {
+      console.log('Admin user exists — left unchanged (real database).');
+    } else if (!admin) {
+      admin = new User({ email: adminEmail, password: adminPassword, firstName: 'Super', lastName: 'Admin', role: 'ROLE ADMIN' });
+      await admin.save();
+      console.log('Admin user seeded automatically.');
+    } else {
+      admin.role = 'ROLE ADMIN';
+      admin.password = adminPassword;
+      await admin.save();
+      console.log('Admin user password updated from ADMIN_PASSWORD.');
+    }
   }
 
   // Automatic variant migration: Copy legacy color field values into variant name
@@ -65,7 +76,12 @@ setupDB().then(async () => {
   }
 });
 require('./config/passport')(app);
+// Locally stored image uploads (see config/cloudinary.js uploadImage).
+app.use('/uploads', express.static(path.join(__dirname, 'uploads'), { maxAge: '7d', immutable: true }));
 app.use(routes);
+
+// API clients always get JSON, never Express's default HTML 404 page.
+app.use((req, res) => res.status(404).json({ success: false, message: `Not found: ${req.method} ${req.path}` }));
 
 const server = app.listen(port, () => {
   console.log(

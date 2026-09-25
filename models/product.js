@@ -35,6 +35,7 @@ const ProductSchema = new Schema({
   amenities: [{ type: String }], // Multi-select amenities
   variants: [VariantSchema],
   isActive: { type: Boolean, default: true },
+  featured: { type: Boolean, default: false },
   updated: Date,
   created: { type: Date, default: Date.now }
 });

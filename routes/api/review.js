@@ -27,8 +27,7 @@ router.post('/add', auth, role.check(ROLES.Admin), async (req, res) => {
 
     let avatarUrl = '';
     if (avatar && avatar.startsWith('data:image')) {
-      const upload = await cloudinary.uploader.upload(avatar, { folder: 'reviews' });
-      avatarUrl = upload.secure_url;
+      avatarUrl = await cloudinary.uploadImage(avatar, 'reviews');
     } else if (avatar) {
       avatarUrl = avatar;
     }
@@ -75,8 +74,7 @@ router.put('/:id', auth, role.check(ROLES.Admin), async (req, res) => {
     const update = req.body.review;
 
     if (update.avatar && update.avatar.startsWith('data:image')) {
-      const upload = await cloudinary.uploader.upload(update.avatar, { folder: 'reviews' });
-      update.avatar = upload.secure_url;
+      update.avatar = await cloudinary.uploadImage(update.avatar, 'reviews');
     }
 
     await Review.findOneAndUpdate({ _id: reviewId }, update, { new: true });

@@ -24,8 +24,7 @@ router.post('/add', auth, role.check(ROLES.Admin), async (req, res) => {
 
     let imageUrl = '';
     if (image && image.startsWith('data:image')) {
-      const upload = await cloudinary.uploader.upload(image, { folder: 'categories' });
-      imageUrl = upload.secure_url;
+      imageUrl = await cloudinary.uploadImage(image, 'categories');
     } else if (image) {
       imageUrl = image;
     }
@@ -116,8 +115,7 @@ router.put('/:id', auth, role.check(ROLES.Admin), async (req, res) => {
     }
 
     if (update.image && update.image.startsWith('data:image')) {
-      const upload = await cloudinary.uploader.upload(update.image, { folder: 'categories' });
-      update.image = upload.secure_url;
+      update.image = await cloudinary.uploadImage(update.image, 'categories');
     }
 
     const updated = await Category.findOneAndUpdate(

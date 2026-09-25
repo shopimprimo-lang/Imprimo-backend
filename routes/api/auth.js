@@ -30,12 +30,12 @@ router.post('/login', async (req, res) => {
       return res.status(400).json({ error: 'You must enter a password.' });
     }
 
+    // Same response for unknown email and wrong password, so accounts can't be probed.
+    const invalid = () =>
+      res.status(401).json({ success: false, error: 'Invalid email or password', message: 'Invalid email or password' });
+
     const user = await User.findOne({ email });
-    if (!user) {
-      return res
-        .status(400)
-        .send({ error: 'No user found for this email address.' });
-    }
+    if (!user) return invalid();
 
     if (user && user.provider !== EMAIL_PROVIDER.Email) {
       return res.status(400).send({
@@ -45,12 +45,7 @@ router.post('/login', async (req, res) => {
 
     const isMatch = await bcrypt.compare(password, user.password);
 
-    if (!isMatch) {
-      return res.status(400).json({
-        success: false,
-        error: 'Password Incorrect'
-      });
-    }
+    if (!isMatch) return invalid();
 
     const payload = {
       id: user.id
@@ -153,36 +148,6 @@ router.post('/register', async (req, res) => {
     res.status(400).json({
       error: 'Your request could not be processed. Please try again.'
     });
-  }
-});
-
-router.get('/seed-admin', async (req, res) => {
-  try {
-    const adminEmail = 'admin@store.com';
-    const existingAdmin = await User.findOne({ email: adminEmail });
-
-    if (existingAdmin) {
-      existingAdmin.role = 'ROLE_ADMIN';
-      existingAdmin.password = await bcrypt.hash('PASSWORD#123', await bcrypt.genSalt(10));
-      await existingAdmin.save();
-      return res.status(200).json({ message: 'Admin updated successfully' });
-    }
-
-    const salt = await bcrypt.genSalt(10);
-    const hash = await bcrypt.hash('PASSWORD#123', salt);
-
-    const adminUser = new User({
-      email: adminEmail,
-      password: hash,
-      firstName: 'Super',
-      lastName: 'Admin',
-      role: 'ROLE_ADMIN'
-    });
-
-    await adminUser.save();
-    res.status(200).json({ message: 'Admin seeded successfully' });
-  } catch (error) {
-    res.status(400).json({ error: error.message });
   }
 });
 
