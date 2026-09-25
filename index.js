@@ -20,7 +20,23 @@ app.use(
     frameguard: true
   })
 );
-app.use(cors());
+// CORS: only the Imprimo sites may call the API from a browser. Auth uses the
+// Authorization header (no cookies), so credentials are not enabled.
+// Requests without an Origin header (server-side rendering, curl, health checks) are allowed.
+const allowedOrigins = new Set([
+  'https://imprimo-frontend.vercel.app',
+  'https://imprimo-admin.vercel.app',
+  ...(keys.app.clientURL ? [keys.app.clientURL.replace(/\/+$/, '')] : []),
+  ...(process.env.NODE_ENV === 'production' ? [] : ['http://localhost:3000', 'http://localhost:3001'])
+]);
+app.use(
+  cors({
+    origin: (origin, cb) => cb(null, !origin || allowedOrigins.has(origin)),
+    methods: ['GET', 'HEAD', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    maxAge: 86400
+  })
+);
 
 setupDB().then(async () => {
   const User = require('./models/user');
@@ -83,10 +99,15 @@ app.use(routes);
 // API clients always get JSON, never Express's default HTML 404 page.
 app.use((req, res) => res.status(404).json({ success: false, message: `Not found: ${req.method} ${req.path}` }));
 
-const server = app.listen(port, () => {
-  console.log(
-    `${chalk.green('✓')} ${chalk.blue(
-      `Listening on port ${port}. Visit http://localhost:${port}/ in your browser.`
-    )}`
-  );
-});
+// `node index.js` (local, Docker, Render…) listens; serverless hosts (Vercel) import the app.
+if (require.main === module) {
+  app.listen(port, () => {
+    console.log(
+      `${chalk.green('✓')} ${chalk.blue(
+        `Listening on port ${port}. Visit http://localhost:${port}/ in your browser.`
+      )}`
+    );
+  });
+}
+
+module.exports = app;

@@ -16,6 +16,7 @@ cloudinary.config({
 const configured = Boolean(
   process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET
 );
+cloudinary.isConfigured = configured;
 
 /**
  * Store a base64 `data:image/...` upload and return the URL to save.

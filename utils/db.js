@@ -30,7 +30,10 @@ const startMemoryDB = async () => {
 const setupDB = async () => {
   dbState.attempts++;
   try {
-    if (!database.url && process.env.NODE_ENV !== 'production') {
+    if (!database.url && process.env.NODE_ENV === 'production') {
+      throw new Error('MONGO_URI (or MONGODB_URI) is not set.');
+    }
+    if (!database.url) {
       database.url = await startMemoryDB();
       dbState.url = `${database.url} (in-memory, development)`;
     }
