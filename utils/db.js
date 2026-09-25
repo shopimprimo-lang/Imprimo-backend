@@ -3,12 +3,7 @@ const chalk = require('chalk');
 const mongoose = require('mongoose');
 
 const keys = require('../config/keys');
-
-// The MongoDB driver's SRV handling makes Node emit a DEP0170 warning that contains the
-// full connection string, password included. Mask credentials in any warning text.
-const emitWarning = process.emitWarning;
-process.emitWarning = (warning, ...rest) =>
-  emitWarning.call(process, typeof warning === 'string' ? warning.replace(/\/\/[^@\s/]+@/g, '//***@') : warning, ...rest);
+require('./maskWarnings');
 const { database } = keys;
 
 const dbState = {
