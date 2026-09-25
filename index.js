@@ -26,6 +26,10 @@ app.use(
 const allowedOrigins = new Set([
   'https://imprimo-frontend.vercel.app',
   'https://imprimo-admin.vercel.app',
+  // Vercel branch deployments of `main` (team scope: shopimprimo-lang). Exact hosts only —
+  // a wildcard would match project names anyone can register on vercel.app.
+  'https://imprimo-frontend-git-main-shopimprimo-lang.vercel.app',
+  'https://imprimo-admin-git-main-shopimprimo-lang.vercel.app',
   ...(keys.app.clientURL ? [keys.app.clientURL.replace(/\/+$/, '')] : []),
   ...(process.env.NODE_ENV === 'production' ? [] : ['http://localhost:3000', 'http://localhost:3001'])
 ]);
