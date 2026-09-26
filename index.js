@@ -24,6 +24,9 @@ app.use(
 // Authorization header (no cookies), so credentials are not enabled.
 // Requests without an Origin header (server-side rendering, curl, health checks) are allowed.
 const allowedOrigins = new Set([
+  'https://imprimoshop.com',
+  'https://www.imprimoshop.com',
+  'https://admin.imprimoshop.com',
   'https://imprimo-frontend.vercel.app',
   'https://imprimo-admin.vercel.app',
   // Vercel branch deployments of `main` (team scope: shopimprimo-lang). Exact hosts only —
